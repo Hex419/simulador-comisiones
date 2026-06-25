@@ -37,29 +37,6 @@
       padding: 34px 0;
     }
 
-    .header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: clamp(28px, 4vw, 44px);
-      line-height: 1.02;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      margin: 0;
-      max-width: 680px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.5;
-    }
-
     .layout {
       display: grid;
       grid-template-columns: minmax(480px, 1fr) minmax(360px, 0.82fr);
@@ -151,11 +128,11 @@
     }
 
     .result {
-      padding: 22px;
+      padding: 16px 20px;
       border-radius: 8px;
-      background: var(--soft);
-      border: 1px solid #ffc083;
-      margin-bottom: 22px;
+      background: #f3e8ff;
+      border: 1px solid #d8b4fe;
+      margin-bottom: 18px;
     }
 
     .result span {
@@ -169,7 +146,7 @@
 
     .result strong {
       display: block;
-      font-size: clamp(38px, 8vw, 64px);
+      font-size: clamp(32px, 6vw, 50px);
       line-height: 1;
       letter-spacing: 0;
     }
@@ -368,7 +345,6 @@
     }
 
     @media (max-width: 820px) {
-      .header,
       .layout,
       .input-row,
       .fields-grid,
@@ -391,13 +367,6 @@
 </head>
 <body>
   <main>
-    <section class="header">
-      <div>
-        <h1>Simulador de Comisiones</h1>
-        <p class="subtitle">Calcula la comisión base por cantidad de ventas y suma incentivos por planes de internet.</p>
-      </div>
-    </section>
-
     <section class="layout">
       <div class="panel calculator">
         <div class="result" aria-live="polite">
@@ -437,8 +406,8 @@
             <strong id="incentivos">S/0</strong>
           </div>
           <div>
-            <span>Comisión unitaria</span>
-            <strong id="comisionUnitaria">S/0</strong>
+            <span>Base + incentivos</span>
+            <strong id="baseMasIncentivos">S/0</strong>
           </div>
           <div>
             <span>Penalización flipping</span>
@@ -568,7 +537,7 @@
     const clientesPago3Input = document.querySelector("#clientesPago3");
     const comisionBaseElement = document.querySelector("#comisionBase");
     const incentivosElement = document.querySelector("#incentivos");
-    const comisionUnitariaElement = document.querySelector("#comisionUnitaria");
+    const baseMasIncentivosElement = document.querySelector("#baseMasIncentivos");
     const penalizacionFlippingElement = document.querySelector("#penalizacionFlipping");
     const porcentajeFlippingElement = document.querySelector("#porcentajeFlipping");
     const totalElement = document.querySelector("#total");
@@ -708,7 +677,6 @@
       const comisionBase = calcularComision(cantidadVentas);
       const incentivos = calcularIncentivos(planes500, planes1000);
       const comisionNominalBruta = comisionBase.total + incentivos.total;
-      const comisionUnitaria = cantidadVentas > 0 ? comisionNominalBruta / cantidadVentas : 0;
       const porcentajeFlipping = cantidadVentas > 0 ? flipping / cantidadVentas : 0;
       const porcentajePago1 = cantidadVentas > 0 ? clientesPago1 / cantidadVentas : 0;
       const porcentajePago2 = cantidadVentas > 0 ? clientesPago2 / cantidadVentas : 0;
@@ -742,7 +710,7 @@
 
       comisionBaseElement.textContent = soles(comisionBase.total);
       incentivosElement.textContent = soles(incentivos.total);
-      comisionUnitariaElement.textContent = soles(comisionUnitaria);
+      baseMasIncentivosElement.textContent = soles(comisionNominalBruta);
       penalizacionFlippingElement.textContent = soles(penalizacionFlipping.total);
       porcentajeFlippingElement.textContent = porcentaje(porcentajeFlipping);
       totalElement.textContent = soles(comisionNominal);
@@ -831,7 +799,7 @@
       clientesPago3Input.value = "";
       comisionBaseElement.textContent = "S/0";
       incentivosElement.textContent = "S/0";
-      comisionUnitariaElement.textContent = "S/0";
+      baseMasIncentivosElement.textContent = "S/0";
       penalizacionFlippingElement.textContent = "S/0";
       porcentajeFlippingElement.textContent = "0%";
       totalElement.textContent = "S/0";
