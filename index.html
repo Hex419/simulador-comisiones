@@ -127,6 +127,90 @@
       border-color: var(--accent);
     }
 
+    .antiguedad-section {
+      margin-top: 22px;
+    }
+
+    .antiguedad-toggle {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid #d8cde3;
+      border-radius: 10px;
+      background: #f7f1fa;
+    }
+
+    .antiguedad-button {
+      height: 46px;
+      color: var(--accent);
+      background: transparent;
+    }
+
+    .antiguedad-button:hover {
+      color: var(--accent);
+      background: #eadcf1;
+    }
+
+    .antiguedad-button.active,
+    .antiguedad-button.active:hover {
+      color: #ffffff;
+      background: var(--accent-2);
+    }
+
+    .commission-scheme {
+      margin-top: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .commission-scheme-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      color: var(--muted);
+      background: var(--soft);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .commission-scheme-header strong {
+      color: var(--accent);
+    }
+
+    .commission-scheme table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .commission-scheme th,
+    .commission-scheme td {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .commission-scheme th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .commission-scheme th:last-child,
+    .commission-scheme td:last-child {
+      text-align: right;
+    }
+
+    .commission-scheme td:first-child {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
     .result {
       padding: 16px 20px;
       border-radius: 8px;
@@ -381,6 +465,30 @@
           <button id="limpiar" class="secondary-button" type="button">Limpiar</button>
         </div>
 
+        <section class="antiguedad-section" aria-labelledby="antiguedadLabel">
+          <label id="antiguedadLabel">Antigüedad del promotor</label>
+          <div class="antiguedad-toggle" role="group" aria-labelledby="antiguedadLabel">
+            <button class="antiguedad-button" type="button" data-antiguedad="M0-M1" aria-pressed="false">M0 y M1</button>
+            <button class="antiguedad-button active" type="button" data-antiguedad="M2-M3" aria-pressed="true">M2 y M3</button>
+          </div>
+          <div class="commission-scheme">
+            <div class="commission-scheme-header">
+              <span>Esquema de comisión base</span>
+              <strong id="antiguedadActiva">M2 y M3</strong>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nivel</th>
+                  <th>Ventas</th>
+                  <th>Valor unitario</th>
+                </tr>
+              </thead>
+              <tbody id="esquemaComision"></tbody>
+            </table>
+          </div>
+        </section>
+
         <div class="fields-grid">
           <div>
             <label for="planes500">Planes 1000 Mbps</label>
@@ -507,13 +615,30 @@
   </main>
 
   <script>
-    const tramos = [
-      { desde: 1, hasta: 5, comision: 0 },
-      { desde: 6, hasta: 7, comision: 58 },
-      { desde: 8, hasta: 9, comision: 105 },
-      { desde: 10, hasta: 30, comision: 142 },
-      { desde: 31, hasta: Infinity, comision: 105 },
-    ];
+    const esquemasComision = {
+      "M0-M1": {
+        etiqueta: "M0 y M1",
+        tramos: [
+          { nivel: 0, desde: 1, hasta: 3, comision: 48 },
+          { nivel: 1, desde: 4, hasta: 7, comision: 58 },
+          { nivel: 2, desde: 8, hasta: 9, comision: 105 },
+          { nivel: 3, desde: 10, hasta: 30, comision: 142 },
+          { nivel: 4, desde: 31, hasta: Infinity, comision: 105 },
+        ],
+      },
+      "M2-M3": {
+        etiqueta: "M2 y M3",
+        tramos: [
+          { nivel: 0, desde: 1, hasta: 5, comision: 0 },
+          { nivel: 1, desde: 6, hasta: 7, comision: 58 },
+          { nivel: 2, desde: 8, hasta: 9, comision: 105 },
+          { nivel: 3, desde: 10, hasta: 30, comision: 142 },
+          { nivel: 4, desde: 31, hasta: Infinity, comision: 105 },
+        ],
+      },
+    };
+
+    let antiguedadSeleccionada = "M2-M3";
 
     const nivelesFlipping = [
       { nivel: "Nivel 1", desde: 0, hasta: 0.10, factor: 1 },
@@ -532,6 +657,9 @@
     const planes500Input = document.querySelector("#planes500");
     const planes1000Input = document.querySelector("#planes1000");
     const flippingInput = document.querySelector("#flipping");
+    const antiguedadButtons = document.querySelectorAll("[data-antiguedad]");
+    const antiguedadActivaElement = document.querySelector("#antiguedadActiva");
+    const esquemaComisionElement = document.querySelector("#esquemaComision");
     const noPagoB1Input = document.querySelector("#noPagoB1");
     const noPagoB2Input = document.querySelector("#noPagoB2");
     const noPagoB3Input = document.querySelector("#noPagoB3");
@@ -579,9 +707,22 @@
       return `${(valor * 100).toLocaleString("es-PE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
     }
 
+    function renderEsquemaComision() {
+      const esquema = esquemasComision[antiguedadSeleccionada];
+      antiguedadActivaElement.textContent = esquema.etiqueta;
+      esquemaComisionElement.innerHTML = esquema.tramos.map((tramo) => `
+        <tr>
+          <td>Nivel ${tramo.nivel}</td>
+          <td>${tramo.desde} - ${tramo.hasta === Infinity ? "a más" : tramo.hasta}</td>
+          <td>${soles(tramo.comision)}</td>
+        </tr>
+      `).join("");
+    }
+
     function calcularComision(cantidadVentas) {
       let total = 0;
       const detalle = [];
+      const tramos = esquemasComision[antiguedadSeleccionada].tramos;
 
       tramos.forEach((tramo) => {
         if (cantidadVentas < tramo.desde) return;
@@ -592,6 +733,7 @@
 
         total += subtotal;
         detalle.push({
+          nivel: tramo.nivel,
           etiqueta: `${tramo.desde} - ${tramo.hasta === Infinity ? "a más" : tramo.hasta}`,
           ventas: ventasEnTramo,
           comision: tramo.comision,
@@ -746,7 +888,7 @@
       const filasComisionBase = comisionBase.detalle.map((item) => `
         <div class="breakdown-row">
           <div>
-            <b>Comisión base: ventas ${item.etiqueta}</b>
+            <b>Comisión base: Nivel ${item.nivel} · ventas ${item.etiqueta}</b>
             <small>${item.ventas} venta(s) x ${soles(item.comision)}</small>
           </div>
           <strong>${soles(item.subtotal)}</strong>
@@ -790,6 +932,19 @@
       desgloseElement.innerHTML = [...filasComisionBase, ...filasIncentivos, ...filasFlipping, ...filasNoPago].join("");
     }
 
+    antiguedadButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        antiguedadSeleccionada = button.dataset.antiguedad;
+        antiguedadButtons.forEach((item) => {
+          const estaActivo = item === button;
+          item.classList.toggle("active", estaActivo);
+          item.setAttribute("aria-pressed", String(estaActivo));
+        });
+        renderEsquemaComision();
+        render();
+      });
+    });
+
     calcularButton.addEventListener("click", render);
     limpiarButton.addEventListener("click", () => {
       ventasInput.value = "";
@@ -829,6 +984,7 @@
       desgloseElement.innerHTML = `<div class="empty">${mensajeInicial}</div>`;
       ventasInput.focus();
     });
+    renderEsquemaComision();
     desgloseElement.innerHTML = `<div class="empty">${mensajeInicial}</div>`;
   </script>
 </body>
