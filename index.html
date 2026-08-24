@@ -531,16 +531,16 @@
           <h2>Distribucion de pagos</h2>
           <div class="payment-inputs">
             <div>
-              <label for="noPagoB1">% No pago B1</label>
-              <input id="noPagoB1" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+              <label for="clientesPago1">Clientes pago 1</label>
+              <input id="clientesPago1" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
             </div>
             <div>
-              <label for="noPagoB2">% No pago B2</label>
-              <input id="noPagoB2" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+              <label for="clientesPago2">Clientes pago 2</label>
+              <input id="clientesPago2" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
             </div>
             <div>
-              <label for="noPagoB3">% No pago B3</label>
-              <input id="noPagoB3" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+              <label for="clientesPago3">Clientes pago 3</label>
+              <input id="clientesPago3" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
             </div>
           </div>
           <table class="nonpayment-table">
@@ -660,9 +660,9 @@
     const antiguedadButtons = document.querySelectorAll("[data-antiguedad]");
     const antiguedadActivaElement = document.querySelector("#antiguedadActiva");
     const esquemaComisionElement = document.querySelector("#esquemaComision");
-    const noPagoB1Input = document.querySelector("#noPagoB1");
-    const noPagoB2Input = document.querySelector("#noPagoB2");
-    const noPagoB3Input = document.querySelector("#noPagoB3");
+    const clientesPago1Input = document.querySelector("#clientesPago1");
+    const clientesPago2Input = document.querySelector("#clientesPago2");
+    const clientesPago3Input = document.querySelector("#clientesPago3");
     const comisionBaseElement = document.querySelector("#comisionBase");
     const incentivosElement = document.querySelector("#incentivos");
     const baseMasIncentivosElement = document.querySelector("#baseMasIncentivos");
@@ -749,11 +749,6 @@
       return valor;
     }
 
-    function numeroPorcentaje(input) {
-      const valor = Number(String(input.value).replace(",", ".")) || 0;
-      return Math.min(Math.max(valor, 0), 100) / 100;
-    }
-
     function calcularIncentivos(planes500, planes1000) {
       return {
         total: planes500 * 30 + planes1000 * 38,
@@ -818,16 +813,22 @@
       const planes500 = numeroEnteroPositivo(planes500Input);
       const planes1000 = numeroEnteroPositivo(planes1000Input);
       const flipping = numeroEnteroPositivo(flippingInput);
-      const noPagoReal1 = numeroPorcentaje(noPagoB1Input);
-      const noPagoReal2 = numeroPorcentaje(noPagoB2Input);
-      const noPagoReal3 = numeroPorcentaje(noPagoB3Input);
-      const tieneNoPagoReal = [noPagoB1Input, noPagoB2Input, noPagoB3Input]
+      const clientesPago1 = numeroEnteroPositivo(clientesPago1Input);
+      const clientesPago2 = numeroEnteroPositivo(clientesPago2Input);
+      const clientesPago3 = numeroEnteroPositivo(clientesPago3Input);
+      const tieneClientesPagados = [clientesPago1Input, clientesPago2Input, clientesPago3Input]
         .some((input) => input.value.trim() !== "");
 
       const comisionBase = calcularComision(cantidadVentas);
       const incentivos = calcularIncentivos(planes500, planes1000);
       const comisionNominalBruta = comisionBase.total + incentivos.total;
       const porcentajeFlipping = cantidadVentas > 0 ? flipping / cantidadVentas : 0;
+      const porcentajePago1 = cantidadVentas > 0 ? clientesPago1 / cantidadVentas : 0;
+      const porcentajePago2 = cantidadVentas > 0 ? clientesPago2 / cantidadVentas : 0;
+      const porcentajePago3 = cantidadVentas > 0 ? clientesPago3 / cantidadVentas : 0;
+      const noPagoReal1 = cantidadVentas > 0 ? 1 - porcentajePago1 : 0;
+      const noPagoReal2 = cantidadVentas > 0 ? 1 - porcentajePago2 : 0;
+      const noPagoReal3 = cantidadVentas > 0 ? 1 - porcentajePago3 : 0;
       const diferencialNoPago1 = 0.06 - noPagoReal1;
       const diferencialNoPago2 = 0.12 - noPagoReal2;
       const diferencialNoPago3 = 0.16 - noPagoReal3;
@@ -836,15 +837,15 @@
       const factorAjusteAcumulado3 = diferencialNoPago3 - diferencialNoPago2;
       const penalizacionFlipping = calcularPenalizacionFlipping(porcentajeFlipping, comisionNominalBruta);
       const comisionNominal = Math.max(0, comisionNominalBruta - penalizacionFlipping.total);
-      const penalizacionNoPago1 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal1, 0.06, comisionNominal) : { total: 0, detalle: [] };
-      const penalizacionNoPago2 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal2, 0.12, comisionNominal) : { total: 0, detalle: [] };
-      const penalizacionNoPago3 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal3, 0.16, comisionNominal) : { total: 0, detalle: [] };
+      const penalizacionNoPago1 = tieneClientesPagados ? calcularPenalizacionNoPago(noPagoReal1, 0.06, comisionNominal) : { total: 0, detalle: [] };
+      const penalizacionNoPago2 = tieneClientesPagados ? calcularPenalizacionNoPago(noPagoReal2, 0.12, comisionNominal) : { total: 0, detalle: [] };
+      const penalizacionNoPago3 = tieneClientesPagados ? calcularPenalizacionNoPago(noPagoReal3, 0.16, comisionNominal) : { total: 0, detalle: [] };
       const pagoFactor1_1 = comisionNominal * 0.84 * 0.80;
       const pagoFactor1_2 = comisionNominal * 0.84 * 0;
       const pagoFactor1_3 = comisionNominal * 0.84 * 0.20;
-      const pagoFactor2_1 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado1 : 0;
-      const pagoFactor2_2 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado2 : 0;
-      const pagoFactor2_3 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado3 : 0;
+      const pagoFactor2_1 = comisionNominal * factorAjusteAcumulado1;
+      const pagoFactor2_2 = comisionNominal * factorAjusteAcumulado2;
+      const pagoFactor2_3 = comisionNominal * factorAjusteAcumulado3;
       const pagoFactor3Base1 = penalizacionNoPago1.total * -1;
       const pagoFactor3Base2 = penalizacionNoPago2.total * -1;
       const pagoFactor3Base3 = penalizacionNoPago3.total * -1;
@@ -858,15 +859,15 @@
       penalizacionFlippingElement.textContent = soles(penalizacionFlipping.total);
       porcentajeFlippingElement.textContent = porcentaje(porcentajeFlipping);
       totalElement.textContent = soles(comisionNominal);
-      noPagoReal1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal1) : "0.0%";
-      noPagoReal2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal2) : "0.0%";
-      noPagoReal3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal3) : "0.0%";
-      diferencialNoPago1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago1) : "0.0%";
-      diferencialNoPago2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago2) : "0.0%";
-      diferencialNoPago3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago3) : "0.0%";
-      factorAjusteAcumulado1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado1) : "0.0%";
-      factorAjusteAcumulado2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado2) : "0.0%";
-      factorAjusteAcumulado3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado3) : "0.0%";
+      noPagoReal1Element.textContent = tieneClientesPagados ? porcentajeDecimal(noPagoReal1) : "0.0%";
+      noPagoReal2Element.textContent = tieneClientesPagados ? porcentajeDecimal(noPagoReal2) : "0.0%";
+      noPagoReal3Element.textContent = tieneClientesPagados ? porcentajeDecimal(noPagoReal3) : "0.0%";
+      diferencialNoPago1Element.textContent = tieneClientesPagados ? porcentajeDecimal(diferencialNoPago1) : "0.0%";
+      diferencialNoPago2Element.textContent = tieneClientesPagados ? porcentajeDecimal(diferencialNoPago2) : "0.0%";
+      diferencialNoPago3Element.textContent = tieneClientesPagados ? porcentajeDecimal(diferencialNoPago3) : "0.0%";
+      factorAjusteAcumulado1Element.textContent = tieneClientesPagados ? porcentajeDecimal(factorAjusteAcumulado1) : "0.0%";
+      factorAjusteAcumulado2Element.textContent = tieneClientesPagados ? porcentajeDecimal(factorAjusteAcumulado2) : "0.0%";
+      factorAjusteAcumulado3Element.textContent = tieneClientesPagados ? porcentajeDecimal(factorAjusteAcumulado3) : "0.0%";
       penalizacionNoPago1Element.textContent = soles(pagoFactor3_1);
       penalizacionNoPago2Element.textContent = soles(pagoFactor3_2);
       penalizacionNoPago3Element.textContent = soles(pagoFactor3_3);
@@ -951,9 +952,9 @@
       planes500Input.value = "";
       planes1000Input.value = "";
       flippingInput.value = "";
-      noPagoB1Input.value = "";
-      noPagoB2Input.value = "";
-      noPagoB3Input.value = "";
+      clientesPago1Input.value = "";
+      clientesPago2Input.value = "";
+      clientesPago3Input.value = "";
       comisionBaseElement.textContent = "S/0";
       incentivosElement.textContent = "S/0";
       baseMasIncentivosElement.textContent = "S/0";
