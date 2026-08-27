@@ -381,6 +381,20 @@
       font-weight: 800;
     }
 
+    .factor-payment-note {
+      margin: 0;
+      padding: 11px 16px;
+      color: var(--muted);
+      background: #eef8f7;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .factor-payment-note strong {
+      color: #0f7d7f;
+    }
+
     .detail-panel {
       padding: 20px;
     }
@@ -603,6 +617,10 @@
               </tr>
             </tbody>
           </table>
+          <p class="factor-payment-note">
+            <strong>Factor 3 es acumulado e incremental:</strong>
+            un valor positivo en Pago 2 o Pago 3 devuelve penalización aplicada en pagos anteriores; no representa un bono adicional.
+          </p>
         </div>
 
       </div>
@@ -848,9 +866,9 @@
       const pagoFactor3Base1 = penalizacionNoPago1.total * -1;
       const pagoFactor3Base2 = penalizacionNoPago2.total * -1;
       const pagoFactor3Base3 = penalizacionNoPago3.total * -1;
-      const pagoFactor3_1 = Math.min(0, pagoFactor3Base1);
-      const pagoFactor3_2 = Math.min(0, pagoFactor3Base2 - pagoFactor3_1);
-      const pagoFactor3_3 = Math.min(0, pagoFactor3Base3 - (pagoFactor3_1 + pagoFactor3_2));
+      const pagoFactor3_1 = pagoFactor3Base1;
+      const pagoFactor3_2 = pagoFactor3Base2 - pagoFactor3Base1;
+      const pagoFactor3_3 = pagoFactor3Base3 - pagoFactor3Base2;
 
       comisionBaseElement.textContent = soles(comisionBase.total);
       incentivosElement.textContent = soles(incentivos.total);
