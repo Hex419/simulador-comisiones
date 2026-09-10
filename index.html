@@ -505,11 +505,11 @@
 
         <div class="fields-grid">
           <div>
-            <label for="planes500">Planes 1000 Mbps</label>
+            <label for="planes500">Planes 500 Mbps</label>
             <input id="planes500" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
           </div>
           <div>
-            <label for="planes1000">Planes 1000 Mbps + HB</label>
+            <label for="planes1000">Planes 1000 Mbps</label>
             <input id="planes1000" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
           </div>
           <div class="full-field">
@@ -776,8 +776,8 @@
       return {
         total: planes500 * 30 + planes1000 * 38,
         detalle: [
-          { etiqueta: "Planes 1000 Mbps", cantidad: planes500, comision: 30, subtotal: planes500 * 30 },
-          { etiqueta: "Planes 1000 Mbps + HB", cantidad: planes1000, comision: 38, subtotal: planes1000 * 38 },
+          { etiqueta: "Planes 500 Mbps", cantidad: planes500, comision: 30, subtotal: planes500 * 30 },
+          { etiqueta: "Planes 1000 Mbps", cantidad: planes1000, comision: 38, subtotal: planes1000 * 38 },
         ].filter((item) => item.cantidad > 0),
       };
     }
