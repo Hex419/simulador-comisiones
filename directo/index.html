@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador de Comisiones | Canal Directo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17121f;
+      --muted: #6b6275;
+      --line: #e7e0ee;
+      --panel: #ffffff;
+      --accent: #52006f;
+      --accent-2: #ff6a00;
+      --accent-3: #f7254b;
+      --soft: #fff3e8;
+      --bg: #faf8fc;
+      --shadow: 0 18px 45px rgba(55, 22, 83, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(480px, 1fr) minmax(360px, 0.82fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .calculator {
+      padding: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .full-field {
+      grid-column: 1 / -1;
+    }
+
+    input {
+      width: 100%;
+      height: 54px;
+      border: 1px solid #d8cde3;
+      border-radius: 8px;
+      padding: 0 16px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(82, 0, 111, 0.12);
+    }
+
+    button {
+      height: 54px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      color: #ffffff;
+      background: var(--accent);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3d0054;
+    }
+
+    .secondary-button {
+      color: var(--accent);
+      background: #ffffff;
+      border: 1px solid #d8cde3;
+    }
+
+    .secondary-button:hover {
+      color: #ffffff;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .antiguedad-section {
+      margin-top: 22px;
+    }
+
+    .antiguedad-toggle {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid #d8cde3;
+      border-radius: 10px;
+      background: #f7f1fa;
+    }
+
+    .antiguedad-button {
+      height: 46px;
+      color: var(--accent);
+      background: transparent;
+    }
+
+    .antiguedad-button:hover {
+      color: var(--accent);
+      background: #eadcf1;
+    }
+
+    .antiguedad-button.active,
+    .antiguedad-button.active:hover {
+      color: #ffffff;
+      background: var(--accent-2);
+    }
+
+    .commission-scheme {
+      margin-top: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .commission-scheme-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      color: var(--muted);
+      background: var(--soft);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .commission-scheme-header strong {
+      color: var(--accent);
+    }
+
+    .commission-scheme table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .commission-scheme th,
+    .commission-scheme td {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .commission-scheme th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .commission-scheme th:last-child,
+    .commission-scheme td:last-child {
+      text-align: right;
+    }
+
+    .commission-scheme td:first-child {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .result {
+      padding: 16px 20px;
+      border-radius: 8px;
+      background: #f3e8ff;
+      border: 1px solid #d8b4fe;
+      margin-bottom: 18px;
+    }
+
+    .result span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .result strong {
+      display: block;
+      font-size: clamp(32px, 6vw, 50px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .summary > div {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .summary strong {
+      display: block;
+      font-size: 21px;
+      line-height: 1;
+    }
+
+    .project-header { margin-bottom: 22px; }
+    .project-header h1 { margin: 0 0 8px; font-size: 28px; color: var(--accent); }
+    .project-header p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .fields-grid label { min-height: 34px; font-size: 12px; }
+    .field-rate { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .payment-table-wrap { overflow-x: auto; }
+    .nonpayment-table { min-width: 460px; }
+    .nonpayment-table td { font-variant-numeric: tabular-nums; }
+    .paid-total { margin: 0; padding: 16px; background: #f3e8ff; display: flex; justify-content: space-between; gap: 12px; }
+    .table-scroll-note { display: none; }
+
+    .payment-section {
+      margin-top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .payment-section h2 {
+      margin: 0;
+      padding: 14px 16px;
+      color: #ffffff;
+      background: var(--accent);
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .payment-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .payment-inputs label {
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .payment-inputs input {
+      height: 44px;
+      font-size: 18px;
+    }
+
+    .payment-row {
+      display: grid;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .payment-row:last-child {
+      border-right: 0;
+    }
+
+    .payment-row span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .payment-row b {
+      font-size: 16px;
+    }
+
+    .payment-row strong {
+      font-size: 20px;
+    }
+
+    .nonpayment-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .nonpayment-table th,
+    .nonpayment-table td {
+      padding: 12px 10px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+    }
+
+    .nonpayment-table th:first-child,
+    .nonpayment-table td:first-child {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .nonpayment-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .nonpayment-table th:last-child,
+    .nonpayment-table td:last-child {
+      border-right: 0;
+    }
+
+    .nonpayment-table tr:last-child td {
+      border-bottom: 0;
+      font-weight: 800;
+    }
+
+    .factor-payment-row td {
+      font-weight: 800;
+    }
+
+    .factor-payment-row td:first-child {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .factor-payment-note {
+      margin: 0;
+      padding: 11px 16px;
+      color: var(--muted);
+      background: #eef8f7;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .factor-payment-note strong {
+      color: #0f7d7f;
+    }
+
+    .detail-panel {
+      padding: 20px;
+    }
+
+    .detail-panel h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .breakdown {
+      display: grid;
+      gap: 10px;
+    }
+
+    .breakdown-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .breakdown-row div:first-child {
+      min-width: 0;
+    }
+
+    .breakdown-row b {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .breakdown-row small {
+      color: var(--muted);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 14px;
+      border: 1px dashed #d8cde3;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    @media (max-width: 820px) {
+      .table-scroll-note { display: block; margin: 0; padding: 10px 16px; color: var(--muted); font-size: 12px; }
+      .layout,
+      .input-row,
+      .fields-grid,
+      .summary,
+      .payment-inputs,
+      .payment-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="project-header">
+      <h1>Simulador de comisiones · Canal directo</h1>
+      <p>Comisión progresiva, incentivos por producto y tres pagos ajustados por calidad.</p>
+    </header>
+    <section class="layout">
+      <div class="panel calculator">
+        <div class="result" aria-live="polite">
+          <span>Comisión nominal</span>
+          <strong id="total">S/0</strong>
+        </div>
+
+        <label for="ventas">Número de ventas</label>
+        <div class="input-row">
+          <input id="ventas" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+          <button id="calcular" type="button">Calcular</button>
+          <button id="limpiar" class="secondary-button" type="button">Limpiar</button>
+        </div>
+
+        <section class="antiguedad-section" aria-labelledby="antiguedadLabel">
+          <label id="antiguedadLabel">Antigüedad del promotor</label>
+          <div class="antiguedad-toggle" role="group" aria-labelledby="antiguedadLabel">
+            <button class="antiguedad-button" type="button" data-antiguedad="M0-M1" aria-pressed="false">M0 y M1</button>
+            <button class="antiguedad-button active" type="button" data-antiguedad="M2-M3" aria-pressed="true">M2 y M3</button>
+          </div>
+          <div class="commission-scheme">
+            <div class="commission-scheme-header">
+              <span>Esquema de comisión base</span>
+              <strong id="antiguedadActiva">M2 y M3</strong>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nivel</th>
+                  <th>Ventas</th>
+                  <th>Valor unitario</th>
+                </tr>
+              </thead>
+              <tbody id="esquemaComision"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="fields-grid">
+          <div>
+            <label for="planes500">Planes 500 Mbps</label>
+            <input id="planes500" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+            <small class="field-rate">S/30 por venta</small>
+          </div>
+          <div>
+            <label for="planes1000">Planes 1000 Mbps + HB</label>
+            <input id="planes1000" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+            <small class="field-rate">S/38 por venta</small>
+          </div>
+          <div>
+            <label for="dgoFamilia">Adicionales DGO Familia</label>
+            <input id="dgoFamilia" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+            <small class="field-rate">S/15 por paquete adicional</small>
+          </div>
+          <div>
+            <label for="dgoFull">Adicionales DGO Full</label>
+            <input id="dgoFull" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+            <small class="field-rate">S/18 por paquete adicional</small>
+          </div>
+          <div class="full-field">
+            <label for="flipping">Flipping</label>
+            <input id="flipping" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="summary">
+          <div>
+            <span>Comisión base</span>
+            <strong id="comisionBase">S/0</strong>
+          </div>
+          <div>
+            <span>Incentivos</span>
+            <strong id="incentivos">S/0</strong>
+          </div>
+          <div>
+            <span>Base + incentivos</span>
+            <strong id="baseMasIncentivos">S/0</strong>
+          </div>
+          <div>
+            <span>Penalización flipping</span>
+            <strong id="penalizacionFlipping">S/0</strong>
+          </div>
+          <div>
+            <span>% Flipping</span>
+            <strong id="porcentajeFlipping">0%</strong>
+          </div>
+        </div>
+
+        <div class="payment-section">
+          <h2>Distribución de pagos · 40% / 30% / 30%</h2>
+          <p class="factor-payment-note">Cada pago suma los factores 1, 2 y 3. Factor 1 aplica una retención anticipada del 16% al nominal antes de distribuirlo. Puedes ingresar uno o más indicadores; los campos vacíos se toman como 0%. Si dejas los tres vacíos, se muestra solo Factor 1.</p>
+          <div class="payment-inputs">
+            <div>
+              <label for="noPagoB1">% FPD</label>
+              <input id="noPagoB1" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+            </div>
+            <div>
+              <label for="noPagoB2">% VNE2</label>
+              <input id="noPagoB2" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+            </div>
+            <div>
+              <label for="noPagoB3">% VNE3</label>
+              <input id="noPagoB3" type="number" min="0" max="100" step="0.1" placeholder="0.0" inputmode="decimal">
+            </div>
+          </div>
+          <p class="table-scroll-note">Desliza la tabla para ver los tres pagos.</p>
+          <div class="payment-table-wrap" tabindex="0" role="region" aria-label="Detalle de los tres pagos">
+          <table class="nonpayment-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Pago 1</th>
+                <th>Pago 2</th>
+                <th>Pago 3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>% No pago real</td>
+                <td id="noPagoReal1">0%</td>
+                <td id="noPagoReal2">0%</td>
+                <td id="noPagoReal3">0%</td>
+              </tr>
+              <tr>
+                <td>% No pago teórico</td>
+                <td>6%</td>
+                <td>12%</td>
+                <td>16%</td>
+              </tr>
+              <tr>
+                <td>Diferencial acumulado</td>
+                <td id="diferencialNoPago1">0%</td>
+                <td id="diferencialNoPago2">0%</td>
+                <td id="diferencialNoPago3">0%</td>
+              </tr>
+              <tr>
+                <td>Ajuste incremental</td>
+                <td id="factorAjusteAcumulado1">0%</td>
+                <td id="factorAjusteAcumulado2">0%</td>
+                <td id="factorAjusteAcumulado3">0%</td>
+              </tr>
+              <tr class="factor-payment-row">
+                <td>Pago Factor 1</td>
+                <td id="pago1">S/0</td>
+                <td id="pago2">S/0</td>
+                <td id="pago3">S/0</td>
+              </tr>
+              <tr class="factor-payment-row">
+                <td>Pago Factor 2</td>
+                <td id="pagoFactor2_1">S/0</td>
+                <td id="pagoFactor2_2">S/0</td>
+                <td id="pagoFactor2_3">S/0</td>
+              </tr>
+              <tr class="factor-payment-row">
+                <td>Pago Factor 3</td>
+                <td id="penalizacionNoPago1">S/0</td>
+                <td id="penalizacionNoPago2">S/0</td>
+                <td id="penalizacionNoPago3">S/0</td>
+              </tr>
+              <tr class="factor-payment-row">
+                <td>Pago neto</td>
+                <td id="anticipoNeto1">S/0</td>
+                <td id="anticipoNeto2">S/0</td>
+                <td id="anticipoNeto3">S/0</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="paid-total"><span>Total de los tres pagos</span><strong id="totalPagado">S/0</strong></p>
+          <p class="factor-payment-note">
+            <strong>Factor 3 es acumulado e incremental:</strong>
+            un valor positivo en Pago 2 o Pago 3 devuelve penalización aplicada en pagos anteriores; no representa un bono adicional.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="panel detail-panel">
+        <h2>Desglose</h2>
+        <div id="desglose" class="breakdown"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const esquemasComision = {
+      "M0-M1": {
+        etiqueta: "M0 y M1",
+        tramos: [
+          { nivel: 0, desde: 1, hasta: 3, comision: 48 },
+          { nivel: 1, desde: 4, hasta: 7, comision: 58 },
+          { nivel: 2, desde: 8, hasta: 9, comision: 105 },
+          { nivel: 3, desde: 10, hasta: 30, comision: 142 },
+          { nivel: 4, desde: 31, hasta: Infinity, comision: 105 },
+        ],
+      },
+      "M2-M3": {
+        etiqueta: "M2 y M3",
+        tramos: [
+          { nivel: 0, desde: 1, hasta: 5, comision: 0 },
+          { nivel: 1, desde: 6, hasta: 7, comision: 58 },
+          { nivel: 2, desde: 8, hasta: 9, comision: 105 },
+          { nivel: 3, desde: 10, hasta: 30, comision: 142 },
+          { nivel: 4, desde: 31, hasta: Infinity, comision: 105 },
+        ],
+      },
+    };
+
+    let antiguedadSeleccionada = "M2-M3";
+
+    const nivelesFlipping = [
+      { nivel: "Nivel 1", desde: 0, hasta: 0.10, factor: 1 },
+      { nivel: "Nivel 2", desde: 0.10, hasta: 0.20, factor: 1.5 },
+      { nivel: "Nivel 3", desde: 0.20, hasta: 1, factor: 2 },
+    ];
+
+    const nivelesNoPago = [
+      { nivel: "Nivel 1", desde: null, hasta: 0.231, factor: 0.25 },
+      { nivel: "Nivel 2", desde: 0.231, hasta: 0.26, factor: 0.5 },
+      { nivel: "Nivel 3", desde: 0.26, hasta: 0.31, factor: 1 },
+      { nivel: "Nivel 4", desde: 0.31, hasta: 1, factor: 1.5 },
+    ];
+
+    const ventasInput = document.querySelector("#ventas");
+    const planes500Input = document.querySelector("#planes500");
+    const planes1000Input = document.querySelector("#planes1000");
+    const dgoFamiliaInput = document.querySelector("#dgoFamilia");
+    const dgoFullInput = document.querySelector("#dgoFull");
+    const totalPagadoElement = document.querySelector("#totalPagado");
+    const flippingInput = document.querySelector("#flipping");
+    const antiguedadButtons = document.querySelectorAll("[data-antiguedad]");
+    const antiguedadActivaElement = document.querySelector("#antiguedadActiva");
+    const esquemaComisionElement = document.querySelector("#esquemaComision");
+    const noPagoB1Input = document.querySelector("#noPagoB1");
+    const noPagoB2Input = document.querySelector("#noPagoB2");
+    const noPagoB3Input = document.querySelector("#noPagoB3");
+    const comisionBaseElement = document.querySelector("#comisionBase");
+    const incentivosElement = document.querySelector("#incentivos");
+    const baseMasIncentivosElement = document.querySelector("#baseMasIncentivos");
+    const penalizacionFlippingElement = document.querySelector("#penalizacionFlipping");
+    const porcentajeFlippingElement = document.querySelector("#porcentajeFlipping");
+    const totalElement = document.querySelector("#total");
+    const noPagoReal1Element = document.querySelector("#noPagoReal1");
+    const noPagoReal2Element = document.querySelector("#noPagoReal2");
+    const noPagoReal3Element = document.querySelector("#noPagoReal3");
+    const diferencialNoPago1Element = document.querySelector("#diferencialNoPago1");
+    const diferencialNoPago2Element = document.querySelector("#diferencialNoPago2");
+    const diferencialNoPago3Element = document.querySelector("#diferencialNoPago3");
+    const factorAjusteAcumulado1Element = document.querySelector("#factorAjusteAcumulado1");
+    const factorAjusteAcumulado2Element = document.querySelector("#factorAjusteAcumulado2");
+    const factorAjusteAcumulado3Element = document.querySelector("#factorAjusteAcumulado3");
+    const penalizacionNoPago1Element = document.querySelector("#penalizacionNoPago1");
+    const penalizacionNoPago2Element = document.querySelector("#penalizacionNoPago2");
+    const penalizacionNoPago3Element = document.querySelector("#penalizacionNoPago3");
+    const pago1Element = document.querySelector("#pago1");
+    const pago2Element = document.querySelector("#pago2");
+    const pago3Element = document.querySelector("#pago3");
+    const pagoFactor2_1Element = document.querySelector("#pagoFactor2_1");
+    const pagoFactor2_2Element = document.querySelector("#pagoFactor2_2");
+    const pagoFactor2_3Element = document.querySelector("#pagoFactor2_3");
+    const anticipoNeto1Element = document.querySelector("#anticipoNeto1");
+    const anticipoNeto2Element = document.querySelector("#anticipoNeto2");
+    const anticipoNeto3Element = document.querySelector("#anticipoNeto3");
+    const desgloseElement = document.querySelector("#desglose");
+    const calcularButton = document.querySelector("#calcular");
+    const limpiarButton = document.querySelector("#limpiar");
+    const mensajeInicial = "Ingresa los datos y presiona Calcular para ver el desglose.";
+
+    function soles(valor) {
+      if (Math.abs(valor) < 0.5) valor = 0;
+      return `S/${valor.toLocaleString("es-PE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    }
+
+    function porcentaje(valor) {
+      return `${Math.round(valor * 100).toLocaleString("es-PE", { maximumFractionDigits: 0 })}%`;
+    }
+
+    function porcentajeDecimal(valor) {
+      return `${(valor * 100).toLocaleString("es-PE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+    }
+
+    function renderEsquemaComision() {
+      const esquema = esquemasComision[antiguedadSeleccionada];
+      antiguedadActivaElement.textContent = esquema.etiqueta;
+      esquemaComisionElement.innerHTML = esquema.tramos.map((tramo) => `
+        <tr>
+          <td>Nivel ${tramo.nivel}</td>
+          <td>${tramo.desde} - ${tramo.hasta === Infinity ? "a más" : tramo.hasta}</td>
+          <td>${soles(tramo.comision)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function calcularComision(cantidadVentas) {
+      let total = 0;
+      const detalle = [];
+      const tramos = esquemasComision[antiguedadSeleccionada].tramos;
+
+      tramos.forEach((tramo) => {
+        if (cantidadVentas < tramo.desde) return;
+
+        const limiteSuperior = Math.min(cantidadVentas, tramo.hasta);
+        const ventasEnTramo = limiteSuperior - tramo.desde + 1;
+        const subtotal = ventasEnTramo * tramo.comision;
+
+        total += subtotal;
+        detalle.push({
+          nivel: tramo.nivel,
+          etiqueta: `${tramo.desde} - ${tramo.hasta === Infinity ? "a más" : tramo.hasta}`,
+          ventas: ventasEnTramo,
+          comision: tramo.comision,
+          subtotal,
+        });
+      });
+
+      return { total, detalle };
+    }
+
+    function numeroEnteroPositivo(input) {
+      const valor = Math.max(0, Math.floor(Number(input.value) || 0));
+      return valor;
+    }
+
+    function numeroPorcentaje(input) {
+      const valor = Number(String(input.value).replace(",", ".")) || 0;
+      return Math.min(Math.max(valor, 0), 100) / 100;
+    }
+
+    function calcularIncentivos(planes500, planes1000, dgoFamilia = 0, dgoFull = 0) {
+      return {
+        total: planes500 * 30 + planes1000 * 38 + dgoFamilia * 15 + dgoFull * 18,
+        detalle: [
+          { etiqueta: "Planes 500 Mbps", cantidad: planes500, comision: 30, subtotal: planes500 * 30 },
+          { etiqueta: "Planes 1000 Mbps + HB", cantidad: planes1000, comision: 38, subtotal: planes1000 * 38 },
+          { etiqueta: "Adicional DGO Familia", cantidad: dgoFamilia, comision: 15, subtotal: dgoFamilia * 15 },
+          { etiqueta: "Adicional DGO Full", cantidad: dgoFull, comision: 18, subtotal: dgoFull * 18 },
+        ].filter((item) => item.cantidad > 0),
+      };
+    }
+
+    function calcularPenalizacionFlipping(porcentajeFlipping, comisionNominalBruta) {
+      const porcentajeAplicable = Math.min(Math.max(porcentajeFlipping, 0), 1);
+      let total = 0;
+      const detalle = [];
+
+      nivelesFlipping.forEach((nivel) => {
+        const diferencial = Math.max(0, Math.min(porcentajeAplicable, nivel.hasta) - nivel.desde);
+        const subtotal = diferencial * comisionNominalBruta * nivel.factor;
+
+        if (diferencial <= 0) return;
+
+        total += subtotal;
+        detalle.push({
+          nivel: nivel.nivel,
+          diferencial,
+          factor: nivel.factor,
+          subtotal,
+        });
+      });
+
+      return { total, detalle };
+    }
+
+    function calcularPenalizacionNoPago(noPagoReal, toleranciaNoPago, comisionNominal) {
+      const noPagoAplicable = Math.min(Math.max(noPagoReal, 0), 1);
+      let total = 0;
+      const detalle = [];
+
+      nivelesNoPago.forEach((nivel) => {
+        const desde = nivel.desde ?? toleranciaNoPago;
+        const diferencial = Math.max(0, Math.min(noPagoAplicable, nivel.hasta) - desde);
+        const subtotal = diferencial * comisionNominal * nivel.factor;
+
+        if (diferencial <= 0) return;
+
+        total += subtotal;
+        detalle.push({
+          nivel: nivel.nivel,
+          desde,
+          hasta: nivel.hasta,
+          diferencial,
+          factor: nivel.factor,
+          subtotal,
+        });
+      });
+
+      return { total, detalle };
+    }
+
+    function render() {
+      for (const input of document.querySelectorAll("input")) {
+        if (!input.reportValidity()) return;
+      }
+      const cantidadVentas = numeroEnteroPositivo(ventasInput);
+      const planes500 = numeroEnteroPositivo(planes500Input);
+      const planes1000 = numeroEnteroPositivo(planes1000Input);
+      const dgoFamilia = numeroEnteroPositivo(dgoFamiliaInput);
+      const dgoFull = numeroEnteroPositivo(dgoFullInput);
+      const flipping = numeroEnteroPositivo(flippingInput);
+      const noPagoReal1 = numeroPorcentaje(noPagoB1Input);
+      const noPagoReal2 = numeroPorcentaje(noPagoB2Input);
+      const noPagoReal3 = numeroPorcentaje(noPagoB3Input);
+      const tieneNoPagoReal = [noPagoB1Input, noPagoB2Input, noPagoB3Input]
+        .some((input) => input.value.trim() !== "");
+
+      const comisionBase = calcularComision(cantidadVentas);
+      const incentivos = calcularIncentivos(planes500, planes1000, dgoFamilia, dgoFull);
+      const comisionNominalBruta = comisionBase.total + incentivos.total;
+      const porcentajeFlipping = cantidadVentas > 0 ? flipping / cantidadVentas : 0;
+      const diferencialNoPago1 = 0.06 - noPagoReal1;
+      const diferencialNoPago2 = 0.12 - noPagoReal2;
+      const diferencialNoPago3 = 0.16 - noPagoReal3;
+      const factorAjusteAcumulado1 = diferencialNoPago1;
+      const factorAjusteAcumulado2 = diferencialNoPago2 - diferencialNoPago1;
+      const factorAjusteAcumulado3 = diferencialNoPago3 - diferencialNoPago2;
+      const penalizacionFlipping = calcularPenalizacionFlipping(porcentajeFlipping, comisionNominalBruta);
+      const comisionNominal = Math.max(0, comisionNominalBruta - penalizacionFlipping.total);
+      const penalizacionNoPago1 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal1, 0.06, comisionNominal) : { total: 0, detalle: [] };
+      const penalizacionNoPago2 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal2, 0.12, comisionNominal) : { total: 0, detalle: [] };
+      const penalizacionNoPago3 = tieneNoPagoReal ? calcularPenalizacionNoPago(noPagoReal3, 0.16, comisionNominal) : { total: 0, detalle: [] };
+      const pagoFactor1_1 = comisionNominal * 0.84 * 0.40;
+      const pagoFactor1_2 = comisionNominal * 0.84 * 0.30;
+      const pagoFactor1_3 = comisionNominal * 0.84 * 0.30;
+      const pagoFactor2_1 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado1 : 0;
+      const pagoFactor2_2 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado2 : 0;
+      const pagoFactor2_3 = tieneNoPagoReal ? comisionNominal * factorAjusteAcumulado3 : 0;
+      const pagoFactor3Base1 = penalizacionNoPago1.total * -1;
+      const pagoFactor3Base2 = penalizacionNoPago2.total * -1;
+      const pagoFactor3Base3 = penalizacionNoPago3.total * -1;
+      const pagoFactor3_1 = pagoFactor3Base1;
+      const pagoFactor3_2 = pagoFactor3Base2 - pagoFactor3Base1;
+      const pagoFactor3_3 = pagoFactor3Base3 - pagoFactor3Base2;
+
+      comisionBaseElement.textContent = soles(comisionBase.total);
+      incentivosElement.textContent = soles(incentivos.total);
+      baseMasIncentivosElement.textContent = soles(comisionNominalBruta);
+      penalizacionFlippingElement.textContent = soles(penalizacionFlipping.total);
+      porcentajeFlippingElement.textContent = porcentaje(porcentajeFlipping);
+      totalElement.textContent = soles(comisionNominal);
+      noPagoReal1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal1) : "0.0%";
+      noPagoReal2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal2) : "0.0%";
+      noPagoReal3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(noPagoReal3) : "0.0%";
+      diferencialNoPago1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago1) : "0.0%";
+      diferencialNoPago2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago2) : "0.0%";
+      diferencialNoPago3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(diferencialNoPago3) : "0.0%";
+      factorAjusteAcumulado1Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado1) : "0.0%";
+      factorAjusteAcumulado2Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado2) : "0.0%";
+      factorAjusteAcumulado3Element.textContent = tieneNoPagoReal ? porcentajeDecimal(factorAjusteAcumulado3) : "0.0%";
+      penalizacionNoPago1Element.textContent = soles(pagoFactor3_1);
+      penalizacionNoPago2Element.textContent = soles(pagoFactor3_2);
+      penalizacionNoPago3Element.textContent = soles(pagoFactor3_3);
+      pago1Element.textContent = soles(pagoFactor1_1);
+      pago2Element.textContent = soles(pagoFactor1_2);
+      pago3Element.textContent = soles(pagoFactor1_3);
+      pagoFactor2_1Element.textContent = soles(pagoFactor2_1);
+      pagoFactor2_2Element.textContent = soles(pagoFactor2_2);
+      pagoFactor2_3Element.textContent = soles(pagoFactor2_3);
+      anticipoNeto1Element.textContent = soles(pagoFactor1_1 + pagoFactor2_1 + pagoFactor3_1);
+      anticipoNeto2Element.textContent = soles(pagoFactor1_2 + pagoFactor2_2 + pagoFactor3_2);
+      anticipoNeto3Element.textContent = soles(pagoFactor1_3 + pagoFactor2_3 + pagoFactor3_3);
+      totalPagadoElement.textContent = soles(pagoFactor1_1 + pagoFactor1_2 + pagoFactor1_3 + pagoFactor2_1 + pagoFactor2_2 + pagoFactor2_3 + pagoFactor3_1 + pagoFactor3_2 + pagoFactor3_3);
+
+      if (comisionBase.detalle.length === 0 && incentivos.detalle.length === 0 && flipping === 0) {
+        desgloseElement.innerHTML = '<div class="empty">Ingresa ventas para ver el desglose por tramo.</div>';
+        return;
+      }
+
+      const filasComisionBase = comisionBase.detalle.map((item) => `
+        <div class="breakdown-row">
+          <div>
+            <b>Comisión base: Nivel ${item.nivel} · ventas ${item.etiqueta}</b>
+            <small>${item.ventas} venta(s) x ${soles(item.comision)}</small>
+          </div>
+          <strong>${soles(item.subtotal)}</strong>
+        </div>
+      `);
+
+      const filasIncentivos = incentivos.detalle.map((item) => `
+        <div class="breakdown-row">
+          <div>
+            <b>Incentivo: ${item.etiqueta}</b>
+            <small>${item.cantidad} ${item.etiqueta.startsWith("Adicional") ? "paquete(s)" : "venta(s)"} x ${soles(item.comision)}</small>
+          </div>
+          <strong>${soles(item.subtotal)}</strong>
+        </div>
+      `);
+
+      const filasFlipping = penalizacionFlipping.detalle.map((item) => `
+        <div class="breakdown-row">
+          <div>
+            <b>Penalización flipping: ${item.nivel}</b>
+            <small>${porcentaje(item.diferencial)} x ${soles(comisionNominalBruta)} x ${porcentaje(item.factor)}</small>
+          </div>
+          <strong>-${soles(item.subtotal)}</strong>
+        </div>
+      `);
+
+      const filasNoPago = [
+        { pago: "Pago 1", penalizacion: penalizacionNoPago1 },
+        { pago: "Pago 2", penalizacion: penalizacionNoPago2 },
+        { pago: "Pago 3", penalizacion: penalizacionNoPago3 },
+      ].flatMap((grupo) => grupo.penalizacion.detalle.map((item) => `
+        <div class="breakdown-row">
+          <div>
+            <b>Penalización acumulada F3: ${grupo.pago} - ${item.nivel}</b>
+            <small>${porcentajeDecimal(item.desde)} - ${porcentajeDecimal(item.hasta)}: ${porcentajeDecimal(item.diferencial)} x ${soles(comisionNominal)} x ${porcentaje(item.factor)}</small>
+          </div>
+          <strong>${soles(item.subtotal * -1)}</strong>
+        </div>
+      `));
+
+      desgloseElement.innerHTML = [...filasComisionBase, ...filasIncentivos, ...filasFlipping, ...filasNoPago].join("");
+    }
+
+    antiguedadButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        antiguedadSeleccionada = button.dataset.antiguedad;
+        antiguedadButtons.forEach((item) => {
+          const estaActivo = item === button;
+          item.classList.toggle("active", estaActivo);
+          item.setAttribute("aria-pressed", String(estaActivo));
+        });
+        renderEsquemaComision();
+        render();
+      });
+    });
+
+    calcularButton.addEventListener("click", render);
+    limpiarButton.addEventListener("click", () => {
+      ventasInput.value = "";
+      planes500Input.value = "";
+      planes1000Input.value = "";
+      dgoFamiliaInput.value = "";
+      dgoFullInput.value = "";
+      totalPagadoElement.textContent = "S/0";
+      flippingInput.value = "";
+      noPagoB1Input.value = "";
+      noPagoB2Input.value = "";
+      noPagoB3Input.value = "";
+      comisionBaseElement.textContent = "S/0";
+      incentivosElement.textContent = "S/0";
+      baseMasIncentivosElement.textContent = "S/0";
+      penalizacionFlippingElement.textContent = "S/0";
+      porcentajeFlippingElement.textContent = "0%";
+      totalElement.textContent = "S/0";
+      noPagoReal1Element.textContent = "0%";
+      noPagoReal2Element.textContent = "0%";
+      noPagoReal3Element.textContent = "0%";
+      diferencialNoPago1Element.textContent = "0%";
+      diferencialNoPago2Element.textContent = "0%";
+      diferencialNoPago3Element.textContent = "0%";
+      factorAjusteAcumulado1Element.textContent = "0%";
+      factorAjusteAcumulado2Element.textContent = "0%";
+      factorAjusteAcumulado3Element.textContent = "0%";
+      penalizacionNoPago1Element.textContent = "S/0";
+      penalizacionNoPago2Element.textContent = "S/0";
+      penalizacionNoPago3Element.textContent = "S/0";
+      pago1Element.textContent = "S/0";
+      pago2Element.textContent = "S/0";
+      pago3Element.textContent = "S/0";
+      pagoFactor2_1Element.textContent = "S/0";
+      pagoFactor2_2Element.textContent = "S/0";
+      pagoFactor2_3Element.textContent = "S/0";
+      anticipoNeto1Element.textContent = "S/0";
+      anticipoNeto2Element.textContent = "S/0";
+      anticipoNeto3Element.textContent = "S/0";
+      desgloseElement.innerHTML = `<div class="empty">${mensajeInicial}</div>`;
+      ventasInput.focus();
+    });
+    renderEsquemaComision();
+    desgloseElement.innerHTML = `<div class="empty">${mensajeInicial}</div>`;
+  </script>
+</body>
+</html>
